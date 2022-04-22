@@ -176,7 +176,7 @@ export async function main(): Promise<void> {
     if (error?.stack) {
       core.info(error.stack);
     }
-    const errorAsString = (err ?? "undefined error").toString();
+    const errorAsString = (error ?? "undefined error").toString();
     core.setFailed(`get-cmake action execution failed: '${errorAsString}'`);
     process.exitCode = -1000;
 
