@@ -35,7 +35,7 @@ export class ToolsGetter {
   private static readonly CMakeVersion = '3.23.0';
   private static readonly NinjaVersion = '1.10.2';
 
-  // Predefined URL for CMake 
+  // Predefined URL for CMake
   private static readonly linux_x64: string = `https://github.com/Kitware/CMake/releases/download/v${ToolsGetter.CMakeVersion}/cmake-${ToolsGetter.CMakeVersion}-linux-x86_64.tar.gz`;
   private static readonly win_x64: string = `https://github.com/Kitware/CMake/releases/download/v${ToolsGetter.CMakeVersion}/cmake-${ToolsGetter.CMakeVersion}-windows-x86_64.zip`;
   private static readonly macos: string = `https://github.com/Kitware/CMake/releases/download/v${ToolsGetter.CMakeVersion}/cmake-${ToolsGetter.CMakeVersion}-macos-universal.tar.gz`;
@@ -94,11 +94,13 @@ export class ToolsGetter {
     core.debug(`hash('${inputHash}') === '${key}'`);
     const outPath = this.getOutputPath(key);
     let hitKey: string | undefined = undefined;
-    try {
-      core.startGroup(`Restore from cache using key '${key}' into ${outPath}`);
-      hitKey = await cache.restoreCache([outPath], key);
-    } finally {
-      core.endGroup();
+    if (!process.env.ACT) {
+      try {
+        core.startGroup(`Restore from cache using key '${key}' into ${outPath}`);
+        hitKey = await cache.restoreCache([outPath], key);
+      } finally {
+        core.endGroup();
+      }
     }
 
     if (hitKey === undefined) {
@@ -126,15 +128,17 @@ export class ToolsGetter {
       core.endGroup();
     }
 
-    try {
-      core.startGroup(`Save to cache using key '${key}' into ${outPath}`);
-      if (hitKey === undefined) {
-        await this.saveCache([outPath], key);
-      } else {
-        core.info("Skipping as cache hit.");
+    if (!process.env.ACT) {
+      try {
+        core.startGroup(`Save to cache using key '${key}' into ${outPath}`);
+        if (hitKey === undefined) {
+          await this.saveCache([outPath], key);
+        } else {
+          core.info("Skipping as cache hit.");
+        }
+      } finally {
+        core.endGroup();
       }
-    } finally {
-      core.endGroup();
     }
   }
 
